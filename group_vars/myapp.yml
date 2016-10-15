@@ -1,0 +1,75 @@
+# group_vars/myapp.yml
+ruby_version: '2.2.3'
+# where and whom to deploy
+app_name: myapp
+app_user: '{{app_name}}'
+app_path: '/home/{{app_user}}/app'
+# what ode to use
+git_url: 'https://github.com/boberetezeke/rails_5_sample.git'
+git_branch: 'master'
+rails_env: production
+# nginx settings
+app_domain: 'myapp.com'
+app_hosts: 'myapp.com www.myapp.com'
+# rvm settings
+rvm_gpg_keys_check:
+  rc: 0
+rvm_import_gpg_keys_result:
+  rc: 0
+# on which host to run migrations
+rails_primary_node: '{{inventory_hostname}}'
+rails_database_name: '{{app_name}}_{{rails_env}}'
+rails_database_user: '{{app_user}}'
+postgresql_version: '9.4'
+postgresql_locale: 'en_US.UTF-8'
+# add additional folders to symlink, like uploads
+rails_deploy_custom_shared_folders: [ 'public/uploads' ]
+# Sidekiq with 5 workers
+rails_sidekiq_enabled: false
+sidekiq_configuration_concurrency: 5
+install_redis: false
+# enable cronjobs with whenever
+whenever: true
+# global user env variables: You can either use those or the config/secrets.yml for
+# getting configuration and secrets into your app
+rails_user_env:
+  SIDEKIQ_WEB_USER: admin
+  SECRET_TOKEN: 'rake secret output here'
+  TWITTER_CONSUMER_SECRET: key
+  TWITTER_CONSUMER_KEY: secret
+  SIDEKIQ_WEB_PASSWORD: password
+  RAILS_ENV: '{{rails_env}}'
+
+# by default, only a couple of files/folders are copied over, you might
+#  whant to add additional
+rails_deploy_custom_archive:
+- bin
+- Gemfile.lock
+#- private
+#- engines
+
+# automatically backup database daily
+database_backup_name: "{{rails_database_name}}"
+# provide secret files that are copied over on each deploy
+rails_provisioned_files:
+  - file: config/secrets.yml
+    yaml:
+      production:
+        http_username: admin
+        http_password: somepassword
+        secret_key_base: 'tip: run rake secret in a rails app to get a good secret'
+        twitter_consumer_key: "somekey"
+        twitter_consumer_secret: "somesecret"
+        twitter_access_token: "somekey"
+        twitter_access_token_secret: "somesecret"
+
+  - file: config/database.yml
+    yaml:
+      production:
+        adapter: postgresql
+        database: '{{rails_database_name}}'
+        encoding: UTF8
+        pool: 30
+# You might want to symlink additional files
+# rails_shared_files:
+#   - db/production.sqlite3

@@ -1,0 +1,6 @@
+# group_vars/pubkeys.yml
+pubkeys:
+  stefan: 'ssh-rsa AAAAB3Nza........... user@host'
+  somebody_else: 'ssh-rsa AAAAB3Nza........... user@host'
+  deploy: 'ssh-rsa AAAAB3Nza........... user@host'
+

@@ -1,0 +1,51 @@
+- name: Install Rails
+  hosts: apps
+  sudo: yes
+  tags:
+    - provisioning
+  vars_files:
+    - group_vars/pubkeys.yml
+  vars:
+    database_backup_base_dir: "/backup/databases"
+  pre_tasks:
+        # I've had problems with locale and postgresql, this might help
+    - locale_gen: name=de_DE.UTF-8 state=present
+    - locale_gen: name=en_US.UTF-8 state=present
+  roles:
+    - role: debops.users
+      users_list:
+      - name: "{{ app_user }}"
+        comment: "Application user"
+        sshkeys:
+        - "{{pubkeys.some_user}}"
+    - role: ANXS.postgresql
+      postgresql_databases:
+        - name: '{{rails_database_name}}'
+      postgresql_users:
+        - name: '{{rails_database_user}}'
+          role_attr_flags: CREATEDB,SUPERUSER
+    - role: geerlingguy.redis
+      when: install_redis
+    - dresden-weekly.Rails/ruby/postgresql
+    - dresden-weekly.Rails/ruby/rvm
+        # imagemagick + rmagick dependencies + pngquant jpegoptim
+    - dresden-weekly.Rails/ruby/imagemagick
+    - dresden-weekly.Rails/rails/folders
+    - dresden-weekly.Rails/rails/logrotate
+        # set environment variables and profile script that changes to the app folder on login
+    - role: dresden-weekly.Rails/user/profile
+      rails_user_name: "{{ app_user }}"
+      rails_user_bashrc_lines:
+        - "cd {{ RAILS_APP_BASE_PATH }} || true"
+        - "cd {{ RAILS_APP_CURRENT_PATH }} || true"
+        # install nginx + configure app-site and enable it
+    - dresden-weekly.Rails/nginx/passenger
+        # simple daily crontab dump of pg database - sufficient for many app sizes
+    - dresden-weekly.Rails/database/backup
+        # Sidekiq + Upstart userjobs
+    - role: dresden-weekly.Rails/rails/jobs/sidekiq
+      when: 'rails_sidekiq_enabled is defined and rails_sidekiq_enabled == true'
+    - role: dresden-weekly.Rails/upstart/userjobs
+      users:
+        - "{{app_user}}"
+      when: 'rails_sidekiq_enabled is defined and rails_sidekiq_enabled == true'

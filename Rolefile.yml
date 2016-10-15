@@ -1,0 +1,12 @@
+- src: "https://github.com/dresden-weekly/ansible-rails"
+  version: "develop"
+  name: "dresden-weekly.Rails"
+- src: "debops.users"
+  version: "v0.1.0"
+- src: 'https://github.com/ANXS/postgresql.git'
+  name: 'ANXS.postgresql'
+  version: 'master'
+- name: 'geerlingguy.redis'
+  version: 'master'
+  src: 'https://github.com/geerlingguy/ansible-role-redis.git'
+

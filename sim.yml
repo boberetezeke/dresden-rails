@@ -1,0 +1,25 @@
+- name: Install Rails
+  hosts: apps
+  sudo: yes
+  tags:
+    - provisioning
+  vars_files:
+    - group_vars/pubkeys.yml
+  pre_tasks:
+        # I've had problems with locale and postgresql, this might help
+    - locale_gen: name=en_US.UTF-8 state=present
+  roles:
+    - role: debops.users
+      users_list:
+      - name: "{{ app_user }}"
+        comment: "Application user"
+        sshkeys:
+        - "{{pubkeys.some_user}}"
+    - role: ANXS.postgresql
+      postgresql_databases:
+        - name: '{{rails_database_name}}'
+      postgresql_users:
+        - name: '{{rails_database_user}}'
+          role_attr_flags: CREATEDB,SUPERUSER
+    - dresden-weekly.Rails/ruby/postgresql
+    - dresden-weekly.Rails/ruby/rvm
